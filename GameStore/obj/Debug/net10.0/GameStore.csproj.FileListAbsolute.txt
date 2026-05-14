@@ -26,3 +26,4 @@
 /home/soultane/Learning/GameStore/GameStore/obj/Debug/net10.0/GameStore.pdb
 /home/soultane/Learning/GameStore/GameStore/obj/Debug/net10.0/GameStore.genruntimeconfig.cache
 /home/soultane/Learning/GameStore/GameStore/obj/Debug/net10.0/ref/GameStore.dll
+/home/soultane/Learning/GameStore/GameStore/obj/Debug/net10.0/GameStore.sourcelink.json

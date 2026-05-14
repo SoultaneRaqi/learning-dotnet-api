@@ -1,12 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace GameStore.Dtos;
 
-/* A Dto is a contract between the client and server , it represents
- a shared agreement about how data will be transferred and used  
-*/
+
 public record GameDto(
    int Id ,
-   string Name ,
-   string Genre ,
-   string Price ,
-   DateOnly ReleaseDate 
+   [Required][StringLength(50)]string Name ,
+   [Required][StringLength(20)]string Genre ,
+   [Range(1,150)]decimal Price ,
+   DateOnly ReleaseDate  
  );
