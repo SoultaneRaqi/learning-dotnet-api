@@ -2,26 +2,26 @@
 GET http://localhost:5189/games
 
 ###
-GET http://localhost:5189/games/4
+GET http://localhost:5189/games/3
 
 ###
 POST http://localhost:5189/games
 Content-Type: application/json 
 
 {
-  "name": "Super Mario Bros. Wonder ",
-  "genre": "Platformer",
+  "name": "Cyberpunk 2077 ",
+  "genreId": 2,
   "price": 59.99,
-  "releaseDate": "2023-10-20"
+  "releaseDate": "2020-12-10"
 }
 
 ###
-PUT http://localhost:5189/games/4
+PUT http://localhost:5189/games/2
 Content-Type: application/json
 
 {
   "name": "FIFA 26",
-  "genre": "Sports",
+  "genreId": 5,
   "price": 59.99,
   "releaseDate": "2025-10-20"
 }

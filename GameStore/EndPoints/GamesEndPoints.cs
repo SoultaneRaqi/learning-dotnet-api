@@ -1,4 +1,7 @@
+using GameStore.Data;
 using GameStore.Dtos;
+using GameStore.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.EndPoints;
 
@@ -6,8 +9,8 @@ public static class GamesEndPoints
 {
     const string GetGameEndpointName = "GetGame";
     
-    private static readonly  List<GameDto> Games = [
-        new GameDto(
+    private static readonly  List<GameSummaryDto> Games = [
+        new GameSummaryDto(
             1,
             "Cyberpunk 2077",
             "RPG",
@@ -15,7 +18,7 @@ public static class GamesEndPoints
             new DateOnly(2020, 12, 10)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             2,
             "Elden Ring",
             "Action RPG",
@@ -23,7 +26,7 @@ public static class GamesEndPoints
             new DateOnly(2022, 2, 25)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             3,
             "Minecraft",
             "Sandbox",
@@ -31,7 +34,7 @@ public static class GamesEndPoints
             new DateOnly(2011, 11, 18)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             4,
             "FIFA 25",
             "Sports",
@@ -39,7 +42,7 @@ public static class GamesEndPoints
             new DateOnly(2024, 9, 27)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             5,
             "Call of Duty: Modern Warfare III",
             "Shooter",
@@ -47,7 +50,7 @@ public static class GamesEndPoints
             new DateOnly(2023, 11, 10)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             6,
             "The Witcher 3",
             "Open World RPG",
@@ -55,7 +58,7 @@ public static class GamesEndPoints
             new DateOnly(2015, 5, 19)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             7,
             "Forza Horizon 5",
             "Racing",
@@ -63,7 +66,7 @@ public static class GamesEndPoints
             new DateOnly(2021, 11, 9)
         ),
 
-        new GameDto(
+        new GameSummaryDto(
             8,
             "Hades",
             "Roguelike",
@@ -77,53 +80,74 @@ public static class GamesEndPoints
         var group = app.MapGroup("/games");
         
     //Get all games 
-        group.MapGet("/", () => Games);
+        group.MapGet("/", async (GameStoreContext dbContext) =>
+        {
+            return await dbContext.Games
+                .Include(game => game.Genre)
+                .Select(game => new GameSummaryDto(
+                game.Id,
+                game.Name,
+                game.Genre!.Name,
+                game.Price,
+                game.ReleaseDate
+                )).AsNoTracking().ToListAsync();
+        });
 
     //Get one game by id 
 
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet( "/{id}", async (int id , GameStoreContext dbContext) =>
             {
-                var game = Games.Find(g => g.Id == id);
-                return game  is null ? Results.NotFound() :  Results.Ok(game);
+                var game = await dbContext.Games.FindAsync(id);
+                
+                return game  is null ? Results.NotFound() :  Results.Ok(
+                    new GameDetailsDto(
+                        game.Id,
+                        game.Name,
+                        game.GenreId,
+                        game.Price,
+                        game.ReleaseDate
+                        ));
             })
             .WithName(GetGameEndpointName);
 
     //Post :
-        group.MapPost("/", (CreateGameDto newGame) =>
+        group.MapPost("/", async (CreateGameDto newGame , GameStoreContext dbContext) =>
         {
-            /*if (string.IsNullOrEmpty(newGame.Name))
+            Game game = new()
             {
-                return Results.BadRequest("Game name is required");
-            }*/
-            GameDto game = new(
-                Games.Count +1 ,
-                newGame.Name ,
-                newGame.Genre ,
-                newGame.Price ,
-                newGame.ReleaseDate 
-            );
-            Games.Add(game);
-    
-            return Results.CreatedAtRoute(GetGameEndpointName, new { id = game.Id }, game);
+                Name = newGame.Name,
+                GenreId = newGame.GenreId,
+                Price = newGame.Price,
+                ReleaseDate = newGame.ReleaseDate
+            };
+            dbContext.Games.Add(game);
+            await dbContext.SaveChangesAsync();    
+
+            GameDetailsDto gameDto = new(
+                game.Id,
+                game.Name,
+                game.GenreId,
+                game.Price,
+                game.ReleaseDate
+                );
+            return Results.CreatedAtRoute(GetGameEndpointName, new { id = gameDto.Id }, gameDto);
         });
 
 
     // Put :
-        group.MapPut("/{id}", (int id, UpdateGameDto updateGame) =>
+        group.MapPut("/{id}", async (int id, UpdateGameDto updateGame  , GameStoreContext dbContext) =>
         {
-            var index = Games.FindIndex(g => g.Id == id);
-            if (index < 0)
+            var existingGame = await dbContext.Games.FindAsync(id);
+            if (existingGame is  null)
             {
                 return Results.NotFound() ;
             }
-            Games[index] = new GameDto(
-                id,
-                updateGame.Name,
-                updateGame.Genre,
-                updateGame.Price,
-                updateGame.ReleaseDate
-            );
-    
+            existingGame.Name = updateGame.Name;
+            existingGame.GenreId = updateGame.GenreId;
+            existingGame.Price = updateGame.Price;
+            existingGame.ReleaseDate = updateGame.ReleaseDate;
+                
+            await  dbContext.SaveChangesAsync();
             return Results.NoContent();
         });
 
