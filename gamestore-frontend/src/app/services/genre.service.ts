@@ -10,7 +10,7 @@ import {Observable} from 'rxjs';
 
 export class GenreService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/genres`;
+  private apiUrl = `${environment.apiUrl}/genres` || "http://localhost:5189/games";
 
   getGenres(): Observable<Genre[]>{
     return this.http.get<Genre[]>(this.apiUrl)

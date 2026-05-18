@@ -9,7 +9,7 @@ import {Observable} from 'rxjs';
 })
 export class GameService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/games`;
+  private apiUrl = `${environment.apiUrl}/games` || "http://localhost:5189/games";
 
   // Get all games
   getGames(): Observable<GameSummary[]> {
